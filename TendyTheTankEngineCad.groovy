@@ -24,13 +24,20 @@ return new ICadGenerator(){
 		ArrayList<CSG> back = []
 		ArrayList<CSG> liftImportCAD = lift.generateCad(kinematics, linkIndex)
 		ArrayList<CSG> liftCAD = []
+			
+		widthX = 0
 		
 		for (CSG c : liftImportCAD) {
 		    String name = c.getName()
 		    if (name != null && !name.toLowerCase().contains("bucket")) {
 		        liftCAD.add(c)
 		    }
+			if (name != null && !name.toLowerCase().contains("board")) {
+				widthX = Math.max(c.getTotalX(),widthX)				
+				println("widthX: ${widthX}")
+			}
 		}
+		println("widthX: ${widthX}")
 		
 		back.addAll(liftCAD)
 		return back
