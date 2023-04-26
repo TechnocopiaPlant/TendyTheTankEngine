@@ -32,7 +32,7 @@ return new ICadGenerator(){
 		    if (name != null && !name.toLowerCase().contains("bucket")) {
 		        liftCAD.add(c)
 		    }
-			if (name != null && !name.toLowerCase().contains("board")) {
+			if (linkIndex == 0 && name != null && !name.toLowerCase().contains("board")) {
 				widthX = Math.max(c.getTotalX(),widthX)				
 				println("widthX: ${widthX}")
 			}
