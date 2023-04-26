@@ -18,26 +18,34 @@ return new ICadGenerator(){
 	
 	// Load ForkyLiftCad.groovy script from TechnocopiaPlant/ForkyRobot repository
 	ICadGenerator lift = ScriptingEngine.gitScriptRun('https://github.com/TechnocopiaPlant/ForkyRobot.git', 'ForkyLiftCad.groovy')
+	private ArrayList<CSG> baseLinkCAD = null
+	
+	public getBaseLinkCAD(kinematics){
+		
+		if(baseLinkCAD==null) {
+			baseLinkCAD = lift.generateCad(kinematics, 0)
+		}
+		return baseLinkCAD
+	}
 
 	@Override
 	public ArrayList<CSG> generateCad(DHParameterKinematics kinematics, int linkIndex) {
 		ArrayList<CSG> back = []
-		ArrayList<CSG> liftImportCAD = lift.generateCad(kinematics, linkIndex)
+		ArrayList<CSG> liftImportCAD = []
+		if (linkIndex == 0) {
+			liftImportCAD = getBaseLinkCAD(kinematics)
+		}
+		else {
+			liftImportCAD = lift.generateCad(kinematics, linkIndex)
+		}
 		ArrayList<CSG> liftCAD = []
-			
-		widthX = 0
 		
 		for (CSG c : liftImportCAD) {
 		    String name = c.getName()
 		    if (name != null && !name.toLowerCase().contains("bucket")) {
 		        liftCAD.add(c)
 		    }
-			if (linkIndex == 0 && name != null && !name.toLowerCase().contains("board")) {
-				widthX = Math.max(c.getTotalX(),widthX)				
-				println("widthX: ${widthX}")
-			}
 		}
-		println("widthX: ${widthX}")
 		
 		back.addAll(liftCAD)
 		return back
@@ -93,10 +101,29 @@ return new ICadGenerator(){
 		
 		// define the parameters for the construction screw holes
 		LengthParameter screwDiameter = new LengthParameter("Screw Hole Diameter (mm)", 3, [0, 20])
-//		screwDiameter.setMM(3)														// construction correct
+//		screwDiameter.setMM(3)															// construction correct
 		screwDiameter.setMM(10)															// temporary, for visualization
 		LengthParameter screwSpacing = new LengthParameter("Distance Between Construction Screws (mm)", 150, [0, 400])
 		screwSpacing.setMM(150)
+		
+		
+		
+		def kinematics = arg0.getAllDHChains().get(0)
+		ICadGenerator lift = ScriptingEngine.gitScriptRun('https://github.com/TechnocopiaPlant/ForkyRobot.git', 'ForkyLiftCad.groovy')
+		ArrayList<CSG> liftImportCAD = getBaseLinkCAD(kinematics)
+		ArrayList<CSG> liftCAD = []
+		def widthX = 0
+		for (CSG c : liftImportCAD) {
+			String name = c.getName()
+			if (name != null && !name.toLowerCase().contains("bucket")) {
+				liftCAD.add(c)
+			}
+			if (name != null && !name.toLowerCase().contains("board")) {
+				widthX = Math.max(c.getTotalX(),widthX)
+				println("widthX: ${widthX}")
+			}
+		}
+		println("widthX: ${widthX}")
 		
 		CSG plantGuide = new Cube(bayDepth.getMM()/2, bayWidth.getMM(), boardThickness.getMM()).toCSG()
 			.movex(bayDepth.getMM()/4)
