@@ -62,6 +62,20 @@ return new ICadGenerator(){
 		// Define URL link to the GitHub repo for this robot
 		def URL="https://github.com/TechnocopiaPlant/TendyTheTankEngine.git"
 		
+		
+		def kinematics = arg0.getAllDHChains().get(0)
+		ArrayList<CSG> liftImportCAD = getBaseLinkCAD(kinematics)
+		ArrayList<CSG> liftCAD = []
+		def widthX = 0
+		for (CSG c : liftImportCAD) {
+			String name = c.getName()
+			if (name != null && name.contains("Board-1-link-0")) {
+				widthX = c.getTotalY()
+				println("widthX: ${widthX}")
+			}
+		}
+		println("widthX: ${widthX}")
+		
 		// define the parameters for the flat stock material
 		//LengthParameter boardThickness = new LengthParameter('Board Thickness (mm)', 3, [0, 100])			// laser cut wood thickness
 		LengthParameter boardThickness = new LengthParameter('Board Thickness (mm)', 19, [0, 100])			// 4'x8' plywood sheets
@@ -76,7 +90,9 @@ return new ICadGenerator(){
 		//bayDepth.setMM(440)
 		bayDepth.setMM(700)
 		LengthParameter bayWidth = new LengthParameter("Bay Width (mm)", 400, [0, 1000])
-		bayWidth.setMM(500)
+		//bayWidth.setMM(500)
+		bayWidth.setMM(widthX)		// disregard LengthParameter and use ForkyLift width
+		println("bayWidth: ${bayWidth.getMM()}")
 		LengthParameter bayHeight = new LengthParameter("Bay Height (mm)", 1300, [0, 5000])
 		bayHeight.setMM(1400)
 		
@@ -108,22 +124,6 @@ return new ICadGenerator(){
 		
 		
 		
-		def kinematics = arg0.getAllDHChains().get(0)
-		ICadGenerator lift = ScriptingEngine.gitScriptRun('https://github.com/TechnocopiaPlant/ForkyRobot.git', 'ForkyLiftCad.groovy')
-		ArrayList<CSG> liftImportCAD = getBaseLinkCAD(kinematics)
-		ArrayList<CSG> liftCAD = []
-		def widthX = 0
-		for (CSG c : liftImportCAD) {
-			String name = c.getName()
-			if (name != null && !name.toLowerCase().contains("bucket")) {
-				liftCAD.add(c)
-			}
-			if (name != null && !name.toLowerCase().contains("board")) {
-				widthX = Math.max(c.getTotalX(),widthX)
-				println("widthX: ${widthX}")
-			}
-		}
-		println("widthX: ${widthX}")
 		
 		CSG plantGuide = new Cube(bayDepth.getMM()/2, bayWidth.getMM(), boardThickness.getMM()).toCSG()
 			.movex(bayDepth.getMM()/4)
